@@ -48,24 +48,39 @@ The following tools were used to build this project:
 ### Step 1: Data Cleaning and Alignment
 Each sensor logs independently and at a different rate, using raw Unix nanosecond timestamps. I converted timestamps to seconds relative to flight start, then merged the altitude and velocity readings using nearest-timestamp matching (`pandas.merge_asof`) into a single aligned table per flight — this was necessary since the two sensors don't record at the exact same moments.
 
-figures/before.jpeg
-figures/after.jpeg
-figures/align_merge.jpeg
+<p align="center">
+  <img src="figures/before.jpeg" alt="data before cleaning" width="700">
+</p>
+
+<p align="center">
+  <img src="figures/after.jpeg" alt="data after cleaning" width="700">
+</p>
+
+<p align="center">
+  <img src="figures/align_merge.jpeg" alt="Aligned altitude and velocity sensor data" width="700">
+</p>
+
 
 ### Step 2: Modeling Normal Flight Behavior
 Using only a flight with no failure, I standardized 7 signals (altitude, 3-axis velocity, 3-axis angular velocity) and fit a PCA model on them. This teaches the model the normal relationship between these signals during healthy flight, rather than a fixed "safe range" for any single sensor.
 
-figures/altitude_comparison.png
+<p align="center">
+  <img src="figures/altitude_comparison.png" alt="Altitude comparison between normal and failure flight" width="700">
+</p>
 
 ### Step 3: Anomaly Detection
 For the failure flight, I projected each moment's signals into PCA space and reconstructed them back. The reconstruction error at each timestamp becomes an anomaly score — the larger the error, the more that moment's behavior deviates from what PCA learned as normal. A detection threshold (mean + 3 standard deviations) flags the point where the score first becomes abnormal.
 
-figures/anomaly_score.png
+<p align="center">
+  <img src="figures/anomaly_score.png" alt="PCA anomaly score over flight duration" width="700">
+</p>
 
 ### Step 4: Validation Against Ground Truth
 The dataset includes an official record of the exact moment the engine failure was triggered. I compared this ground-truth timestamp against my model's detected anomaly point to check real-world accuracy, rather than relying on visual guesswork.
 
-figures/validation_combined.png
+<p align="center">
+  <img src="figures/validation_combined.png" alt="PCA detection compared with ground truth failure timestamp" width="700">
+</p>
 
 ## Results
 - The flight's altitude dropped twice: once early on (~8 seconds in), and again later (~110 seconds in, ending in a crash).
